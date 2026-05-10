@@ -8,6 +8,8 @@ import {
   orderBy,
 } from "firebase/firestore";
 import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
+import { auth } from "../firebase/config";
+import { onAuthStateChanged, signOut } from "firebase/auth";
 
 import { motion, AnimatePresence } from "framer-motion";
 import {
@@ -26,6 +28,16 @@ import {
 import "../styles/Timeline.css";
 
 const Timeline = () => {
+  //Usuario
+  const [user, setUser] = useState(null);
+
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
+      setUser(currentUser);
+    });
+    return () => unsubscribe();
+  }, []);
+
   // Estados de UI
   const [selectedMemory, setSelectedMemory] = useState(null);
   const [currentMediaIndex, setCurrentMediaIndex] = useState(0);
@@ -160,11 +172,11 @@ const Timeline = () => {
           </motion.div>
         ))}
       </div>
-
-      <button className="add-btn-float" onClick={() => setShowAddModal(true)}>
-        <Plus size={32} />
-      </button>
-
+      {user && (
+        <button className="add-btn-float" onClick={() => setShowAddModal(true)}>
+          <Plus size={32} />
+        </button>
+      )}
       {/* Modal detalle */}
       <AnimatePresence>
         {selectedMemory && (

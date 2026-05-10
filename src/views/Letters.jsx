@@ -7,12 +7,23 @@ import {
   query,
   orderBy,
 } from "firebase/firestore";
+import { auth } from "../firebase/config";
+import { onAuthStateChanged, signOut } from "firebase/auth";
 
 import { motion, AnimatePresence } from "framer-motion";
 import { PenLine, X, Heart, Send } from "lucide-react";
 import "../styles/Letters.css";
 
 const Letters = () => {
+  //Usuario
+  const [user, setUser] = useState(null);
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
+      setUser(currentUser);
+    });
+    return () => unsubscribe();
+  }, []);
+
   const [letters, setLetters] = useState([]);
   const [newLetter, setNewLetter] = useState({
     title: "",
@@ -106,15 +117,16 @@ const Letters = () => {
         ))}
       </motion.div>
 
-      <motion.button
-        className="add-btn-float"
-        onClick={() => setShowWriteModal(true)}
-        whileHover={{ scale: 1.1, rotate: 5 }}
-        whileTap={{ scale: 0.9 }}
-      >
-        <PenLine size={30} />
-      </motion.button>
-
+      {user && (
+        <motion.button
+          className="add-btn-float"
+          onClick={() => setShowWriteModal(true)}
+          whileHover={{ scale: 1.1, rotate: 5 }}
+          whileTap={{ scale: 0.9 }}
+        >
+          <PenLine size={30} />
+        </motion.button>
+      )}
       <AnimatePresence>
         {selectedLetter && (
           <div
@@ -178,14 +190,18 @@ const Letters = () => {
                   placeholder="Título del momento (ej. Nuestra tarde...)"
                   className="write-input-title"
                   value={newLetter.title}
-                  onChange={(e) => setNewLetter({ ...newLetter, title: e.target.value })}
+                  onChange={(e) =>
+                    setNewLetter({ ...newLetter, title: e.target.value })
+                  }
                 />
                 <textarea
                   placeholder="Escribe tu carta aquí..."
                   className="write-textarea"
                   rows="8"
-                  value={newLetter.content} 
-                  onChange={(e) => setNewLetter({ ...newLetter, content: e.target.value })}
+                  value={newLetter.content}
+                  onChange={(e) =>
+                    setNewLetter({ ...newLetter, content: e.target.value })
+                  }
                 ></textarea>
 
                 <div className="write-form-footer">
@@ -194,7 +210,9 @@ const Letters = () => {
                     placeholder="Firma (Tu nombre)"
                     className="write-input-sig"
                     value={newLetter.signature}
-                    onChange={(e) => setNewLetter({ ...newLetter, signature: e.target.value })} 
+                    onChange={(e) =>
+                      setNewLetter({ ...newLetter, signature: e.target.value })
+                    }
                   />
 
                   <motion.button

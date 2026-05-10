@@ -1,17 +1,19 @@
 import { initializeApp } from "firebase/app";
 import { getFirestore } from "firebase/firestore";
 import { getStorage } from "firebase/storage";
+import { getAuth } from "firebase/auth";
 
 const firebaseConfig = {
-  apiKey: "AIzaSyBu7ryT6Pmf1LX3QHOkhptG9OOJ2DhIqKg",
-  authDomain: "komorebi-d7045.firebaseapp.com",
-  projectId: "komorebi-d7045",
-  storageBucket: "komorebi-d7045.firebasestorage.app",
-  messagingSenderId: "372040726268",
-  appId: "1:372040726268:web:0a30eebc9ffbce8be9c979"
+  apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
+  authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN,
+  projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID,
+  storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET,
+  messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID,
+  appId: import.meta.env.VITE_FIREBASE_APP_ID,
 };
 
 const app = initializeApp(firebaseConfig);
 
 export const db = getFirestore(app);
 export const storage = getStorage(app);
+export const auth = getAuth(app);
