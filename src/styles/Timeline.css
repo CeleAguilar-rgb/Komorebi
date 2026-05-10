@@ -362,28 +362,28 @@ select:focus {
   }
 }
 
-@media (max-width: 850px) {
+@media (max-width: 750px) {
   .timeline-header h2 {
-    font-size: 2.5rem; 
+    font-size: 2.5rem;
   }
   .center-line {
-    left: 30px; 
+    left: 30px;
     transform: none;
   }
   .zigzag-container {
-    padding-left: 60px; 
+    padding-left: 60px;
     padding-right: 20px;
-    gap: 40px; 
+    gap: 40px;
   }
   .timeline-item {
-    width: 100% !important; 
-    align-self: flex-start !important; 
+    width: 100% !important;
+    align-self: flex-start !important;
     margin-top: 0 !important;
   }
 
   .connector-dot {
-    top: 40px; 
-    left: -48px !important; 
+    top: 40px;
+    left: -48px !important;
     right: auto !important;
     width: 30px;
     height: 30px;
@@ -391,24 +391,50 @@ select:focus {
 
   .modal-card {
     width: 95%;
-    max-height: 90vh; 
+    max-height: 90vh;
     border-radius: 25px;
+    max-height: 92vh;
+    border-radius: 25px;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+  }
+  .add-form {
+    padding: 25px 20px !important;
   }
   .carousel-section {
-    height: 300px; 
+    height: 300px;
+  }
+
+  .add-btn-float {
+    width: 60px;
+    height: 60px;
+    right: 20px;
+    bottom: 90px;
   }
   .form-grid {
-    grid-template-columns: 1fr; 
+    grid-template-columns: 1fr;
     gap: 20px;
   }
   .detail-info h2 {
     font-size: 1.5rem;
   }
-  .add-btn-float {
-    width: 60px;
-    height: 60px;
-    right: 20px;
-    bottom: 90px; 
+  .row-inputs {
+    grid-template-columns: 1fr;
+    gap: 10px;
+  }
+
+  .add-form h3 {
+    font-size: 1.5rem;
+    text-align: center;
+  }
+  .btn-save {
+    margin-top: 20px;
+    padding: 15px;
+  }
+  .upload-box {
+    padding: 20px;
+    min-height: 120px;
   }
 }
 

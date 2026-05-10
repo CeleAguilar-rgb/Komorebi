@@ -52,6 +52,7 @@ const Timeline = () => {
     location: "",
     description: "",
     mood: "✨ Mágico",
+    date: "",
   });
 
   // Cambios en tiempo real
@@ -69,6 +70,8 @@ const Timeline = () => {
     if (selectedFiles.length === 0)
       return alert("¡Sube al menos una foto o video! 🌸");
     if (!formData.title) return alert("Ponle un título a este momento ✨");
+    if (!formData.date)
+      return alert("Selecciona una fecha para este recuerdo 📅");
 
     setIsUploading(true);
 
@@ -88,14 +91,17 @@ const Timeline = () => {
       }
 
       // Guardar registro en Firestore
+      const selectedDate = new Date(formData.date + "T00:00:00");
+      const dateFormatted = selectedDate.toLocaleDateString("es-MX", {
+        day: "numeric",
+        month: "short",
+        year: "numeric",
+      });
+
       await addDoc(collection(db, "timeline"), {
         ...formData,
+        date: dateFormatted,
         media: mediaUrls,
-        date: new Date().toLocaleDateString("es-MX", {
-          day: "numeric",
-          month: "short",
-          year: "numeric",
-        }),
         createdAt: new Date(),
       });
 
@@ -105,6 +111,7 @@ const Timeline = () => {
         location: "",
         description: "",
         mood: "✨ Mágico",
+        date: "",
       });
       setSelectedFiles([]);
       setIsUploading(false);
@@ -296,9 +303,13 @@ const Timeline = () => {
                   />
                   <div className="row-inputs">
                     <input
-                      type="text"
+                      type="date"
                       placeholder="Fecha"
-                      onFocus={(e) => (e.target.type = "date")}
+                      value={formData.date}
+                      onClick={(e) => e.target.showPicker?.()}
+                      onChange={(e) =>
+                        setFormData({ ...formData, date: e.target.value })
+                      }
                     />
                     <input
                       type="text"
