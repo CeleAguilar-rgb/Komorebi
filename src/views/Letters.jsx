@@ -1,9 +1,54 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { db } from "../firebase/config";
+import {
+  collection,
+  addDoc,
+  onSnapshot,
+  query,
+  orderBy,
+} from "firebase/firestore";
+
 import { motion, AnimatePresence } from "framer-motion";
 import { PenLine, X, Heart, Send } from "lucide-react";
 import "../styles/Letters.css";
 
 const Letters = () => {
+  const [letters, setLetters] = useState([]);
+  const [newLetter, setNewLetter] = useState({
+    title: "",
+    content: "",
+    signature: "",
+  });
+  useEffect(() => {
+    const q = query(collection(db, "letters"), orderBy("createdAt", "desc"));
+    const unsubscribe = onSnapshot(q, (snapshot) => {
+      const docs = snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
+      setLetters(docs);
+    });
+    return () => unsubscribe();
+  }, []);
+
+  const handleSaveLetter = async () => {
+    if (!newLetter.title || !newLetter.content)
+      return alert("¡Escribe algo primero! 🌸");
+
+    try {
+      await addDoc(collection(db, "letters"), {
+        ...newLetter,
+        date: new Date().toLocaleDateString("es-MX", {
+          day: "numeric",
+          month: "long",
+          year: "numeric",
+        }),
+        createdAt: new Date(),
+      });
+      setNewLetter({ title: "", content: "", signature: "" }); // Limpiar
+      setShowWriteModal(false);
+    } catch (error) {
+      console.error("Error guardando carta:", error);
+    }
+  };
+
   const [selectedLetter, setSelectedLetter] = useState(null);
   const [showWriteModal, setShowWriteModal] = useState(false);
 
@@ -19,25 +64,6 @@ const Letters = () => {
     hidden: { y: 20, opacity: 0 },
     visible: { y: 0, opacity: 1 },
   };
-
-  const [letters] = useState([
-    {
-      id: 1,
-      date: "10 de Agosto, 2023",
-      title: "El inicio de todo",
-      content:
-        "Todavía me acuerdo de cómo estaba el cielo ese día. No sabía que mi vida estaba a punto de cambiar por completo. Gracias por aparecer y llenar todo de color.",
-      signature: "Con amor, Celeste",
-    },
-    {
-      id: 2,
-      date: "25 de Diciembre, 2023",
-      title: "Nuestra primera Navidad",
-      content:
-        "Ver las luces de la ciudad contigo fue el mejor regalo. No necesito nada más si estás tú al lado del arbolito.",
-      signature: "Tu persona favorita",
-    },
-  ]);
 
   return (
     <motion.div
@@ -79,7 +105,6 @@ const Letters = () => {
           </motion.div>
         ))}
       </motion.div>
-
 
       <motion.button
         className="add-btn-float"
@@ -152,20 +177,29 @@ const Letters = () => {
                   type="text"
                   placeholder="Título del momento (ej. Nuestra tarde...)"
                   className="write-input-title"
+                  value={newLetter.title}
+                  onChange={(e) => setNewLetter({ ...newLetter, title: e.target.value })}
                 />
                 <textarea
                   placeholder="Escribe tu carta aquí..."
                   className="write-textarea"
                   rows="8"
+                  value={newLetter.content} 
+                  onChange={(e) => setNewLetter({ ...newLetter, content: e.target.value })}
                 ></textarea>
+
                 <div className="write-form-footer">
                   <input
                     type="text"
                     placeholder="Firma (Tu nombre)"
                     className="write-input-sig"
+                    value={newLetter.signature}
+                    onChange={(e) => setNewLetter({ ...newLetter, signature: e.target.value })} 
                   />
+
                   <motion.button
                     className="send-letter-btn"
+                    onClick={handleSaveLetter}
                     whileHover={{ scale: 1.05 }}
                     whileTap={{ scale: 0.95 }}
                   >

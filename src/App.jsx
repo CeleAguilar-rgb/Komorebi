@@ -3,6 +3,7 @@ import Navbar from "./components/Navbar.jsx";
 import Home from "./views/Home.jsx";
 import Timeline from "./views/Timeline.jsx";
 import Letters from "./views/Letters.jsx";
+import MusicPlayer from "./components/MusicPlayer.jsx";
 
 import "./App.css";
 
@@ -18,7 +19,7 @@ function App() {
 
         {activeTab === "letters" && <Letters />}
       </main>
-
+      <MusicPlayer />
       <Navbar activeTab={activeTab} setActiveTab={setActiveTab} />
     </div>
   );

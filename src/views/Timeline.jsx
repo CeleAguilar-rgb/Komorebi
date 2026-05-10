@@ -1,4 +1,14 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { db, storage } from "../firebase/config";
+import {
+  collection,
+  addDoc,
+  onSnapshot,
+  query,
+  orderBy,
+} from "firebase/firestore";
+import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
+
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Camera,
@@ -11,80 +21,88 @@ import {
   Heart,
   Film,
   Smile,
+  Loader2,
 } from "lucide-react";
 import "../styles/Timeline.css";
 
 const Timeline = () => {
+  // Estados de UI
   const [selectedMemory, setSelectedMemory] = useState(null);
   const [currentMediaIndex, setCurrentMediaIndex] = useState(0);
   const [showAddModal, setShowAddModal] = useState(false);
 
-  const [moments] = useState([
-    {
-      id: 1,
-      date: "14 Feb 2024",
-      title: "Picnic bajo los Cerezos",
-      location: "Parque Central",
-      description:
-        "Fue el día que decidimos adoptar a 'Mochi'. Realmente mágico ver cómo caían los pétalos mientras reíamos.",
-      mood: "✨ Mágico",
-      media: [
-        {
-          type: "image",
-          url: "https://images.unsplash.com/photo-1522202176988-66273c2fd55f?q=80&w=800",
-        },
-        {
-          type: "image",
-          url: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?q=80&w=800",
-        },
-        { type: "video", url: "https://www.w3schools.com/html/mov_bbb.mp4" },
-      ],
-    },
-    {
-      id: 2,
-      date: "20 Dic 2023",
-      title: "Nuestra Primera Navidad",
-      location: "Cabaña en el Bosque",
-      description:
-        "Hicimos chocolate caliente y vimos películas toda la noche bajo las mantas.",
-      mood: "🏠 Acogedor",
-      media: [
-        {
-          type: "image",
-          url: "https://images.unsplash.com/photo-1544819667-97505c312431?q=80&w=800",
-        },
-      ],
-    },
-     {
-      id: 3,
-      date: "20 Dic 2023",
-      title: "Nuestra Primera Navidad",
-      location: "Cabaña en el Bosque",
-      description:
-        "Hicimos chocolate caliente y vimos películas toda la noche bajo las mantas.",
-      mood: "🏠 Acogedor",
-      media: [
-        {
-          type: "image",
-          url: "https://images.unsplash.com/photo-1544819667-97505c312431?q=80&w=800",
-        },
-      ],
-    }, {
-      id: 4,
-      date: "20 Dic 2023",
-      title: "Nuestra Primera Navidad",
-      location: "Cabaña en el Bosque",
-      description:
-        "Hicimos chocolate caliente y vimos películas toda la noche bajo las mantas.",
-      mood: "🏠 Acogedor",
-      media: [
-        {
-          type: "image",
-          url: "https://images.unsplash.com/photo-1544819667-97505c312431?q=80&w=800",
-        },
-      ],
-    },
-  ]);
+  // Estados de Datos
+  const [moments, setMoments] = useState([]);
+  const [isUploading, setIsUploading] = useState(false);
+  const [selectedFiles, setSelectedFiles] = useState([]);
+  const [formData, setFormData] = useState({
+    title: "",
+    location: "",
+    description: "",
+    mood: "✨ Mágico",
+  });
+
+  // Cambios en tiempo real
+  useEffect(() => {
+    const q = query(collection(db, "timeline"), orderBy("createdAt", "desc"));
+    const unsubscribe = onSnapshot(q, (snapshot) => {
+      const docs = snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
+      setMoments(docs);
+    });
+    return () => unsubscribe();
+  }, []);
+
+  // GUardado
+  const handleSaveMemory = async () => {
+    if (selectedFiles.length === 0)
+      return alert("¡Sube al menos una foto o video! 🌸");
+    if (!formData.title) return alert("Ponle un título a este momento ✨");
+
+    setIsUploading(true);
+
+    try {
+      const mediaUrls = [];
+
+      // Subir cada archivo al Storage
+      for (const file of selectedFiles) {
+        const fileRef = ref(storage, `timeline/${Date.now()}-${file.name}`);
+        await uploadBytes(fileRef, file);
+        const url = await getDownloadURL(fileRef);
+
+        mediaUrls.push({
+          url: url,
+          type: file.type.includes("video") ? "video" : "image",
+        });
+      }
+
+      // Guardar registro en Firestore
+      await addDoc(collection(db, "timeline"), {
+        ...formData,
+        media: mediaUrls,
+        date: new Date().toLocaleDateString("es-MX", {
+          day: "numeric",
+          month: "short",
+          year: "numeric",
+        }),
+        createdAt: new Date(),
+      });
+
+      // Resetear todo
+      setFormData({
+        title: "",
+        location: "",
+        description: "",
+        mood: "✨ Mágico",
+      });
+      setSelectedFiles([]);
+      setIsUploading(false);
+      setShowAddModal(false);
+    } catch (error) {
+      console.error("Error al guardar:", error);
+      alert("Algo falló al subir :( Intenta de nuevo");
+      setIsUploading(false);
+    }
+  };
 
   const nextMedia = (e) => {
     e.stopPropagation();
@@ -147,6 +165,7 @@ const Timeline = () => {
         <Plus size={32} />
       </button>
 
+      {/* Modal detalle */}
       <AnimatePresence>
         {selectedMemory && (
           <div
@@ -208,6 +227,7 @@ const Timeline = () => {
         )}
       </AnimatePresence>
 
+      {/* Modal Añdir */}
       <AnimatePresence>
         {showAddModal && (
           <div className="modal-overlay" onClick={() => setShowAddModal(false)}>
@@ -226,15 +246,41 @@ const Timeline = () => {
               <h3>Nuevo Recuerdo</h3>
 
               <div className="form-grid">
-                <div className="upload-box">
-                  <Camera size={40} />
-                  <p>Seleccionar fotos y videos</p>
+                <div
+                  className="upload-box"
+                  onClick={() => document.getElementById("file-input").click()}
+                >
+                  {selectedFiles.length > 0 ? (
+                    <div className="upload-status">
+                      <Film size={32} />
+                      <p>{selectedFiles.length} archivos listos</p>
+                    </div>
+                  ) : (
+                    <>
+                      <Camera size={40} />
+                      <p>Seleccionar fotos y videos</p>
+                    </>
+                  )}
+                  <input
+                    id="file-input"
+                    type="file"
+                    multiple
+                    hidden
+                    accept="image/*,video/*"
+                    onChange={(e) =>
+                      setSelectedFiles(Array.from(e.target.files))
+                    }
+                  />
                 </div>
 
                 <div className="inputs-box">
                   <input
                     type="text"
                     placeholder="¿Cómo se llama este momento?"
+                    value={formData.title}
+                    onChange={(e) =>
+                      setFormData({ ...formData, title: e.target.value })
+                    }
                   />
                   <div className="row-inputs">
                     <input
@@ -242,23 +288,51 @@ const Timeline = () => {
                       placeholder="Fecha"
                       onFocus={(e) => (e.target.type = "date")}
                     />
-                    <input type="text" placeholder="Lugar" />
+                    <input
+                      type="text"
+                      placeholder="Lugar"
+                      value={formData.location}
+                      onChange={(e) =>
+                        setFormData({ ...formData, location: e.target.value })
+                      }
+                    />
                   </div>
                   <textarea
                     placeholder="Cuéntame toda la historia..."
                     rows="4"
+                    value={formData.description}
+                    onChange={(e) =>
+                      setFormData({ ...formData, description: e.target.value })
+                    }
                   />
                   <div className="row-inputs">
-                    <select>
-                      <option>¿Cómo te sientes?</option>
-                      <option>✨ Mágico</option>
-                      <option>💖 Enamorada</option>
-                      <option>😂 Divertido</option>
+                    <select
+                      value={formData.mood}
+                      onChange={(e) =>
+                        setFormData({ ...formData, mood: e.target.value })
+                      }
+                    >
+                      <option value="✨ Mágico">✨ Mágico</option>
+                      <option value="💖 Enamorada">💖 Enamorada</option>
+                      <option value="😂 Divertido">😂 Divertido</option>
+                      <option value="🏠 Acogedor">🏠 Acogedor</option>
                     </select>
                   </div>
                 </div>
               </div>
-              <button className="btn-save">Guardar en Komorebi</button>
+              <button
+                className="btn-save"
+                onClick={handleSaveMemory}
+                disabled={isUploading}
+              >
+                {isUploading ? (
+                  <span className="flex-center">
+                    <Loader2 className="animate-spin" size={18} /> Subiendo...
+                  </span>
+                ) : (
+                  "Guardar en Komorebi"
+                )}
+              </button>
             </motion.div>
           </div>
         )}

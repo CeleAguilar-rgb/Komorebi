@@ -1,0 +1,60 @@
+.music-container {
+  position: fixed;
+  bottom: 110px;
+  left: 30px;
+  z-index: 1000;
+}
+
+.play-btn-only {
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  border: 1px solid rgba(255, 255, 255, 0.6);
+  background: var(--cherry-blossom);
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  position: relative;
+  box-shadow: 0 4px 15px rgba(255, 183, 197, 0.4);
+  backdrop-filter: blur(5px);
+}
+.play-btn-only:hover {
+  transform: scale(1.1);
+  background: var(--cherry-dark);
+}
+
+.play-btn-only.is-playing::after {
+  content: "";
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  background: var(--cherry-blossom);
+  animation: musicPulse 2s infinite;
+  z-index: -1;
+}
+
+@keyframes musicPulse {
+  0% {
+    transform: scale(1);
+    opacity: 0.6;
+  }
+  100% {
+    transform: scale(2);
+    opacity: 0;
+  }
+}
+
+@media (max-width: 768px) {
+  .music-container {
+    bottom: 95px;
+    left: 20px;
+  }
+  .play-btn-only {
+    width: 45px;
+    height: 45px;
+  }
+}
