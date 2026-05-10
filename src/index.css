@@ -1,0 +1,28 @@
+:root {
+  --cherry-light: #fff5f7;
+  --cherry-blossom: #ffb7c5;
+  --cherry-dark: #ff8e9f;
+  --text-main: #5c3a41;
+  
+  --font-titles: 'Playfair Display', serif;
+  --font-interface: 'Quicksand', sans-serif;
+  --font-letters: 'Caveat', cursive;
+
+  background-color: var(--cherry-light);
+  color: var(--text-main);
+}
+
+h1, h2 {
+  font-family: var(--font-titles);
+  color: var(--text-main);
+}
+
+body {
+  font-family: var(--font-interface);
+}
+
+img {
+  max-width: 100%;
+  display: block;
+}
+

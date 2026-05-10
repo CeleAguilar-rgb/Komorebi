@@ -1,0 +1,23 @@
+.app-container {
+  min-height: 90vh;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  background-color: var(--cherry-light);
+}
+
+.main-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.placeholder-view {
+  height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-family: var(--font-titles);
+  color: var(--text-main);
+  font-size: 1.2rem;
+}
